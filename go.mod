@@ -2,10 +2,12 @@ module 503Scanner
 
 go 1.20
 
-require tinygo.org/x/bluetooth v0.8.0
+require (
+	github.com/eclipse/paho.mqtt.golang v1.4.3
+	tinygo.org/x/bluetooth v0.8.0
+)
 
 require (
-	github.com/eclipse/paho.mqtt.golang v1.4.3 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
