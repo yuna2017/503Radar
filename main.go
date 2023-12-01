@@ -69,40 +69,40 @@ func main() {
 	}(device)
 
 	println("Discovering Services")
-	ble_services, err := device.DiscoverServices(nil)
+	bleServices, err := device.DiscoverServices(nil)
 	must("Discover services", err)
 
-	var radar_serv bluetooth.DeviceService
-	for _, service := range ble_services {
+	var radarServ bluetooth.DeviceService
+	for _, service := range bleServices {
 		if service.String() == ServiceId {
-			radar_serv = service
+			radarServ = service
 			println("Found target service")
 			break
 		}
 	}
 
-	radar_char, err := radar_serv.DiscoverCharacteristics(nil)
+	radarChar, err := radarServ.DiscoverCharacteristics(nil)
 	must("Error discovering characteristics", err)
 
 	var (
-		command_char bluetooth.DeviceCharacteristic
-		notify_char  bluetooth.DeviceCharacteristic
+		commandChar bluetooth.DeviceCharacteristic
+		notifyChar  bluetooth.DeviceCharacteristic
 	)
 
-	for _, characteristic := range radar_char {
+	for _, characteristic := range radarChar {
 		switch characteristic.String() {
 		case NotifyCharId:
-			notify_char = characteristic
+			notifyChar = characteristic
 			println("Found notify char")
 		case WriteCharId:
 			println("Found command char")
-			command_char = characteristic
+			commandChar = characteristic
 		}
 	}
 
 	// Write login
 	messageChan := make(chan []byte, 10)
-	err = notify_char.EnableNotifications(func(buf []byte) {
+	err = notifyChar.EnableNotifications(func(buf []byte) {
 		select {
 		case messageChan <- buf:
 		default:
@@ -111,7 +111,7 @@ func main() {
 	})
 	must("Failed to enable notify", err)
 
-	_, err = command_char.WriteWithoutResponse([]byte{0xfd, 0xfc, 0xfb, 0xfa, 0x08, 0x00, 0xa8, 0x00, 0x48, 0x69, 0x4c,
+	_, err = commandChar.WriteWithoutResponse([]byte{0xfd, 0xfc, 0xfb, 0xfa, 0x08, 0x00, 0xa8, 0x00, 0x48, 0x69, 0x4c,
 		0x69, 0x6e, 0x6b, 0x04, 0x03, 0x02, 0x01})
 	must("Error writing command", err)
 
