@@ -63,7 +63,11 @@ func main() {
 	err := adapter.Scan(func(adapter *bluetooth.Adapter, result bluetooth.ScanResult) {
 		println("Found device: ", result.Address.String(), result.RSSI, result.LocalName())
 		if result.Address.String() == DeviceMac {
-			adapter.StopScan()
+			err := adapter.StopScan()
+			if err != nil {
+				println("BLE Stop scan error")
+				return
+			}
 			ch <- result
 		}
 	})
