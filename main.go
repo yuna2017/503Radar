@@ -5,8 +5,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"time"
 	"tinygo.org/x/bluetooth"
 )
 
@@ -32,25 +30,6 @@ const DeviceMac = "B7:04:84:25:19:4C"
 const ServiceId = "0000fff0-0000-1000-8000-00805f9b34fb"
 const NotifyCharId = "0000fff1-0000-1000-8000-00805f9b34fb"
 const WriteCharId = "0000fff2-0000-1000-8000-00805f9b34fb"
-
-func createMqttClient() mqtt.Client {
-	const ConnectAddress = "tcp://192.168.31.241:1883"
-	const ClientId = "503-scanner-mqtt"
-	fmt.Println("MQTT Connect Address: ", ConnectAddress)
-	opts := mqtt.NewClientOptions()
-	opts.AddBroker(ConnectAddress)
-	opts.SetUsername("")
-	opts.SetPassword("")
-	opts.SetClientID(ClientId)
-	opts.SetKeepAlive(time.Second * 60)
-	client := mqtt.NewClient(opts)
-	token := client.Connect()
-
-	if token.WaitTimeout(5*time.Second) && token.Error() != nil {
-		must("MQTT server connect", token.Error())
-	}
-	return client
-}
 
 func main() {
 	println("503 scanner starting...")
@@ -84,9 +63,6 @@ func main() {
 			println("Error disconnect BLE device. Ignoring.")
 		}
 	}(device)
-
-	mqttClient := createMqttClient()
-	defer mqttClient.Disconnect(500)
 
 	println("Discovering Services")
 	ble_services, err := device.DiscoverServices(nil)
@@ -172,13 +148,10 @@ func main() {
 				println("Moving(", pkt.MovingTargetDistance, "cm)&static target(", pkt.StaticTargetDistance, "cm)")
 			}
 
-			jsonData, err := json.Marshal(pkt)
+			_, err = json.Marshal(pkt)
 			if err != nil {
 				return
 			}
-
-			// Publish message
-			mqttClient.Publish("lot/503radar", 0, false, string(jsonData))
 		}
 	}
 }
