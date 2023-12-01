@@ -2,9 +2,13 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"os"
+	"time"
 	"tinygo.org/x/bluetooth"
 )
 
@@ -33,6 +37,17 @@ const WriteCharId = "0000fff2-0000-1000-8000-00805f9b34fb"
 
 func main() {
 	println("503 scanner starting...")
+	println("Connecting to InfluxDB...")
+	token := os.Getenv("INFLUXDB_TOKEN")
+	url := "http://192.168.31.241:8086"
+	client := influxdb2.NewClientWithOptions(url, token, influxdb2.DefaultOptions().SetBatchSize(100))
+	org := "yuna"
+	bucket := "iot-bucket"
+	writeAPI := client.WriteAPIBlocking(org, bucket)
+	defer func() {
+		//writeAPI.Flush()
+		client.Close()
+	}()
 
 	must("Enable BLE stack", adapter.Enable())
 
@@ -152,8 +167,27 @@ func main() {
 				println("Moving(", pkt.MovingTargetDistance, "cm)&static target(", pkt.StaticTargetDistance, "cm)")
 			}
 
-			_, err = json.Marshal(pkt)
+			jsonData, err := json.Marshal(pkt)
 			if err != nil {
+				return
+			}
+			dataMap := make(map[string]interface{})
+			err = json.Unmarshal(jsonData, &dataMap)
+			if err != nil {
+				println("JSON Unmarshal error", err)
+				return
+			}
+			p := influxdb2.NewPoint(
+				"radar",
+				map[string]string{
+					"id":       "503_radar",
+					"location": "503_the_service_unavailable_lab",
+				},
+				dataMap,
+				time.Now())
+			err = writeAPI.WritePoint(context.Background(), p)
+			if err != nil {
+				println("Write error")
 				return
 			}
 		}
