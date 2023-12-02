@@ -156,16 +156,16 @@ func main() {
 				continue
 			}
 
-			switch pkt.TargetStatus {
-			case 0x00:
-				println("No target ")
-			case 0x01:
-				println("Moving target @ ", pkt.MovingTargetDistance, "cm")
-			case 0x02:
-				println("Static target @ ", pkt.StaticTargetDistance, "cm")
-			case 0x03:
-				println("Moving(", pkt.MovingTargetDistance, "cm)&static target(", pkt.StaticTargetDistance, "cm)")
-			}
+			//switch pkt.TargetStatus {
+			//case 0x00:
+			//	println("No target ")
+			//case 0x01:
+			//	println("Moving target @ ", pkt.MovingTargetDistance, "cm")
+			//case 0x02:
+			//	println("Static target @ ", pkt.StaticTargetDistance, "cm")
+			//case 0x03:
+			//	println("Moving(", pkt.MovingTargetDistance, "cm)&static target(", pkt.StaticTargetDistance, "cm)")
+			//}
 
 			jsonData, err := json.Marshal(pkt)
 			if err != nil {
