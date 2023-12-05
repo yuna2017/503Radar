@@ -54,9 +54,19 @@ func main() {
 		log.Fatal("Query failed", err)
 	}
 
-	lastStatus := int(result.Record().Value().(float64))
+	lastStatus := -1
+	for result.Next() {
+		lastStatusFloat, ok := result.Record().Value().(float64)
+		if ok {
+			lastStatus = int(lastStatusFloat)
+			break
+		}
+	}
 	msg := ""
 	switch lastStatus {
+	case -1:
+		println("No data received")
+		os.Exit(0)
 	case 0:
 		msg = "有人 -> 无人"
 	default:
@@ -67,10 +77,10 @@ func main() {
 
 func SendMail(msg string) {
 	from := os.Getenv("SMTP_EMAIL")
-	stmpHost := os.Getenv("SMTP_HOST")
+	smtpHost := os.Getenv("SMTP_HOST")
 
 	server := mail.NewSMTPClient()
-	server.Host = stmpHost
+	server.Host = smtpHost
 	server.Port = 465
 	server.Username = from
 	server.Password = os.Getenv("SMTP_PASSWORD")
