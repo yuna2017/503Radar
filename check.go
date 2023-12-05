@@ -7,6 +7,7 @@ import (
 	mail "github.com/xhit/go-simple-mail/v2"
 	"log"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -94,11 +95,18 @@ func SendMail(msg string) {
 
 	email := mail.NewMSG()
 	email.SetFrom(fmt.Sprintf("YUNABotNotice <%s>", from))
-	email.AddTo(os.Getenv("TARGET_EMAIL"))
+	subscribers := os.Getenv("TARGET_EMAIL")
+	if len(strings.TrimSpace(subscribers)) == 0 {
+		println("Given no email to send notice to")
+		return
+	}
+	for _, s := range strings.Split(subscribers, ",") {
+		email.AddTo(s)
+	}
 	email.SetSubject("503 Radar Status Update")
 	email.SetBody(mail.TextPlain, "Status update to: "+msg)
 	err = email.Send(stmpClient)
 	if err != nil {
-		println("Failed to send email via stmp client, ", err)
+		println("Failed to send email via smtp client, ", err)
 	}
 }
