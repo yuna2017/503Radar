@@ -68,9 +68,9 @@ func main() {
 		println("No data received")
 		os.Exit(0)
 	case 0:
-		msg = "有人 -> 无人"
+		msg = "有人变无人"
 	default:
-		msg = "无人 -> 有人"
+		msg = "无人变有人"
 	}
 	SendMail(msg)
 }
